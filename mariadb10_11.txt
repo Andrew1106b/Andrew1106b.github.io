@@ -1,0 +1,205 @@
+-- 身份鉴别
+
+#可以进行AS 别名成中文，方便阅读查看
+
+# 查看版本
+select version();
+
+SELECT CONCAT('判定身份鉴别', '认证插件');
+SELECT user AS 账户名,host,plugin from mysql.user where plugin like '%unix_socket%' ;
+
+-- 查看过期、空口令的用户列表
+SELECT '查看过期、空口令的用户列表';
+select user,host,authentication_string,password_expired from mysql.user;
+
+-- 查看数据库口令复杂度
+SELECT '数据库口令复杂度';
+SHOW VARIABLES like '%PASSWORD%';
+
+-- 查看数据库全局变量的口令有效期
+SELECT '全局变量的口令有效期';
+SHOW variables like 'default_password_lifetime';
+
+-- 查看账户级别的口令有效期
+SELECT '账户级别的口令有效期';
+SELECT * from mysql.global_priv where priv like '%password_lifetime%'\G;
+
+-- 查看登录失败次数
+SELECT '登录失败次数';
+SHOW variables like '%max_password_errors%';
+
+-- 登录连接超时自动退出时间（在mariadb中退出后，默认自动登录，且无法更改）
+-- 查看session级别的登录超时时间
+SELECT 'session级别的登录超时时间';
+select * from information_schema.SESSION_variables where variable_name in ('interactive_timeout','wait_timeout');
+
+-- 查看全局配置的登录超时时间
+SELECT '全局配置的登录超时时间';
+SELECT * from information_schema.global_variables where variable_name in ('interactive_timeout','wait_timeout');
+
+--查看是否开启ssl
+SELECT '是否开启ssl';
+SHOW variables like '%ssl%';
+
+status
+
+SHOW VARIABLES like 'require_secure_transport';
+
+
+-- 查看加密算法
+SELECT '查看加密算法';
+SHOW GLOBAL VARIABLES LIKE 'SSL_CIPHER';
+
+-- 访问控制
+
+-- 默认账户
+SELECT '默认账户';
+SELECT user,host from mysql.global_priv where user in('root','mysql');
+
+-- 核查数据库是否存在匿名的账户
+SELECT '是否存在匿名的账户';
+SELECT user,host from mysql.user where user=''or host='' or host='%';
+
+-- 直接查看全部的账户的权限
+SELECT '查看全部的账户的权限';
+select * from mysql.user\G;
+
+-- 过期的账户
+SELECT '过期的账户';
+SELECT user,host,password_expired from mysql.user;
+
+-- 锁定的账户
+SELECT '锁定的账户';
+SELECT user AS 已锁定的账户名,host AS 已锁定的主机地址 from mysql.global_priv where priv like '%account_locked%'\G;
+
+-- 账户口令最后修改时间是否超过所设置的全局变量口令过期时间
+SELECT '账户口令最后修改时间是否超过所设置的全局变量口令过期时间';
+SELECT * from mysql.global_priv where priv like '%password_last_change%';
+
+-- 核查日志是否存在共享账户
+SELECT '日志是否存在共享账户';
+SELECT * FROM mysql.general_log where command_type ='connect';
+
+-- 检查数据库是否确保只有管理员账号拥有数据库的相关权限
+SELECT '是否确保只有管理员账号拥有数据库的相关权限';
+SELECT user, host,Select_priv,Insert_priv,Update_priv,Delete_priv,Create_priv,Drop_priv  FROM mysql.user WHERE Select_priv='Y' OR Insert_priv='Y' OR Update_priv='Y' OR Delete_priv='Y' OR Create_priv='Y'OR Drop_priv='Y';
+
+-- 检查用户权限表是否存在普通账户具备授权给其他账户的权限。（应仅显示管理员账户）
+SELECT '是否存在普通账户具备授权给其他账户的权限。（应仅显示管理员账户）';
+SELECT user AS 具备grant权限的账户名,host from mysql.user where grant_priv='Y'\G;
+
+-- 检查数据库用户表权限是否分配合理。
+SELECT '数据库用户表权限是否分配合理';
+SELECT * from mysql.user\G;
+
+-- 检查数据库权限是否分配管理人员进行管理
+SELECT '是否分配管理人员进行管理';
+SELECT * from mysql.db\G;
+
+-- 检查数据库表权限是否分配管理人员进行管理
+SELECT '是否分配管理人员进行管理';
+SELECT * from mysql.tables_priv\G;
+
+-- 检查数据库列权限是否分配管理人员进行管理
+SELECT '是否分配管理人员进行管理';
+SELECT * from mysql.columns_priv\G;
+
+
+-- 安全审计
+
+-- 查看是否开启日志审计功能
+SELECT '是否开启日志审计功能';
+SHOW GLOBAL VARIABLES LIKE '%general_log%';
+
+-- 查看是否启用审计插件server_audit
+SELECT '是否启用审计插件server_audit';
+SHOW GLOBAL VARIABLES LIKE '%server_audit_logging%';
+
+-- 检查数据库是否开启慢查询日志、错误日志或二进制日志
+SELECT '是否开启慢查询日志、错误日志或二进制日志';
+SELECT * FROM information_schema.GLOBAL_VARIABLES WHERE VARIABLE_NAME in ('slow_query_log','log_error','log_bin');
+
+-- 检查数据库采用general_log和server_audit审计功能，日志是否设置了存储类型（应不为NONE）
+SELECT '采用general_log和server_audit审计功能，日志是否设置了存储类型（应不为NONE）';
+SHOW VARIABLES like 'log_output'; 
+SHOW VARIABLES like 'server_audit_output_type';
+
+-- 检查数据库是否设置log_warnings变量，设置log_error的警告记录的级别
+SELECT '是否设置log_warnings变量，设置log_error的警告记录的级别';
+ SHOW GLOBAL VARIABLES LIKE 'log_warnings';
+
+-- 检查内容范围是否覆盖到重要的用户行为和重要安全事件。
+SELECT '内容范围是否覆盖到重要的用户行为和重要安全事件。';
+SELECT * FROM mysql.general_log LIMIT 10\G;
+
+-- 核查时间戳
+SELECT '时间戳';
+SHOW GLOBAL VARIABLES LIKE '%time_zone%';
+
+-- 检查系统当前时间是否设置准确无误
+SELECT '系统当前时间是否设置准确无误';
+SELECT CURRENT_TIMESTAMP;
+
+-- 检查数据库的审计日志所记录的时间是否正确无误
+SELECT '审计日志所记录的时间是否正确无误';
+SELECT * FROM mysql.general_log ORDER BY event_time DESC LIMIT 10\G;
+
+-- 检查日志存储路径下的日志文件路径
+SELECT '日志存储路径下的日志文件路径';
+SHOW GLOBAL VARIABLES LIKE '%server_audit_file_path%'; 
+
+SHOW GLOBAL VARIABLES LIKE '%general_log_file%';
+## 再通过ll，检查审计日志文件所属的组是否分配合理，其权限是否配置合理。
+
+-- 检查数据库的配置文件是否存在log-raw字段，且是否配置为ON。（应为OFF）
+SELECT '数据库的配置文件是否存在log-raw字段，且是否配置为ON。（应为OFF）';
+SELECT user,host,file_priv FROM mysql.user where file_priv ='Y';
+
+-- 数据库采用server_audit的审计插件时，检查其指定所需的输出类型是否合理。（应不为空）
+SELECT '数据库采用server_audit的审计插件时，检查其指定所需的输出类型是否合理。（应不为空）';
+SHOW GLOBAL VARIABLES LIKE 'server_audit_output_type';
+
+-- 检查采用审计插件server_audit审计，数据库是否设置强制日志文件进行轮换。（默认为关闭，配置ON或1开启）
+SELECT '采用审计插件server_audit审计，数据库是否设置强制日志文件进行轮换。（默认为关闭，配置ON或1开启）';
+SHOW GLOBAL VARIABLES LIKE 'server_audit_file_rotate_now';
+
+--检查数据库是否设置日志大小限制（设置范围214748364-536870912，单位为B，即200M-500M）
+SELECT '数据库是否设置日志大小限制（设置范围214748364-536870912，单位为B，即200M-500M）';
+SHOW GLOBAL VARIABLES LIKE 'server_audit_file_rotate_size';
+
+-- 检查数据库是否指定轮换后所保留的日志文件个数。（默认为0，表示日志永不轮换）
+SELECT '是否指定轮换后所保留的日志文件个数。（默认为0，表示日志永不轮换）';
+SHOW GLOBAL VARIABLES LIKE 'server_audit_file_rotations';
+
+-- 检查数据库采用general_log的TABLE存储类型进行日志存储时是否将日志记录留存180天
+SELECT '采用general_log的TABLE存储类型进行日志存储时是否将日志记录留存180天';
+SELECT * FROM mysql.general_log where event_time < DATE(CURRENT_DATE() - INTERVAL 180 DAY);
+## 再查看grep -v '^$\|^#' /etc/logrotate.conf（主配置文件）
+
+-- 检查数据库二进制日志是否合理配置变量expire_logs_days（单位为天） 或 binlog_expire_logs_seconds（单位为秒）的值。
+SELECT '数据库二进制日志是否合理配置变量expire_logs_days（单位为天） 或 binlog_expire_logs_seconds（单位为秒）的值。';
+SHOW VARIABLES LIKE '%expire_logs%';
+
+-- 数据库二进制日志是否配置合理的存储大小max_binlog_size来进行转换存储。（默认值为1073741824B，即1GB）
+SELECT '二进制日志是否配置合理的存储大小max_binlog_size来进行转换存储。（默认值为1073741824B，即1GB）';
+SHOW VARIABLES LIKE '%max_binlog_size%';
+
+-- 重要数据的存储完整性
+
+-- 检查数据库是否开启定时任务功能。
+SELECT '数据库是否开启定时任务功能。';
+SHOW VARIABLES LIKE '%event_sche%';
+
+-- 检查数据库是否制定事件定时任务对鉴别数据进行校验
+SELECT '是否制定事件定时任务对鉴别数据进行校验';
+SELECT * from information_schema.events\G;
+
+-- 检查数据库event_scheduler事件计划是否开启，是否执行了事件定时任务。
+SELECT '数据库event_scheduler事件计划是否开启，是否执行了事件定时任务';
+SELECT * from information_schema.PROCESSLIST\G;
+
+-- 检查是否采用合规的主从复制进行数据的热冗余。
+SELECT '是否采用合规的主从复制进行数据的热冗余。';
+SHOW SLAVE STATUS\G;
+
+exit
