@@ -338,7 +338,7 @@ echo
 echo ">>>>>>>>>>>>>>>>>>>> [是否对账户进行合理分配:] <<<<<<<<<<<<<<<<<<<<"
 echo -e "查看账户列表：\n"`awk -F : '{print $3,$1}' /etc/passwd |sort -n`
 echo
-echo ">>>>>>>>>>>>>>>>>>>> [是否对默认、匿名账户进行权限限制:]"
+echo ">>>>>>>>>>>>>>>>>>>> [是否对默认、匿名账户进行权限限制:]<<<<<<<<<<<<<<<<<<<<"
 echo -e "查看是否限制root账户远程登录的权限：\n"`grep 'PermitRootLogin' /etc/ssh/sshd_config`
 echo
 echo
