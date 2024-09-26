@@ -182,12 +182,12 @@ echo
 echo
 
 # 最小口令长度
-echo ">>>>>>>>>>>>>>>>>>>> [/etc/pam.d/common-auth文件下的口令最小长度:] <<<<<<<<<<<<<<<<<<<<"
-min_len=`more /etc/pam.d/common-auth | grep -E 'pam_pwquality.so'`
+echo ">>>>>>>>>>>>>>>>>>>> [/etc/pam.d/system-auth文件下的口令最小长度:] <<<<<<<<<<<<<<<<<<<<"
+min_len=`more /etc/pam.d/system-auth | grep -E 'pam_pwquality.so'`
 if [[ -n $min_len ]];then
-	echo -e "/etc/pam.d/common-auth文件下口令最小长度为："$min_len
+	echo -e "/etc/pam.d/system-auth文件下口令最小长度为："$min_len
 else
-	echo "未配置/etc/pam.d/common-auth文件的口令最小长度"
+	echo "未配置/etc/pam.d/system-auth文件的口令最小长度"
 fi
 echo
 echo ">>>>>>>>>>>>>>>>>>>> [/etc/security/pwquality.conf文件下的口令最小长度:]"
@@ -199,16 +199,16 @@ else
 	echo "未配置/etc/security/pwquality.conf文件"
 fi
 echo
-echo "（注意：若上述两个文件均存在配置，以/etc/pam.d/common-auth文件为准，下同）"
+echo "（注意：若上述两个文件均存在配置，以/etc/pam.d/system-auth文件为准，下同）"
 echo
 
 # 口令复杂度
 echo ">>>>>>>>>>>>>>>>>>>> [口令的复杂度:] <<<<<<<<<<<<<<<<<<<<"
-complexity=`more /etc/pam.d/common-auth | grep -E 'pam_pwquality.so'`
+complexity=`more /etc/pam.d/system-auth | grep -E 'pam_pwquality.so'`
 if [[ -n $complexity ]];then
-	echo -e "/etc/pam.d/common-auth文件下口令复杂度为："$complexity
+	echo -e "/etc/pam.d/system-auth文件下口令复杂度为："$complexity
 else
-	echo "未配置/etc/pam.d/common-auth文件的口令复杂度"
+	echo "未配置/etc/pam.d/system-auth文件的口令复杂度"
 fi
 echo ">>>>>>>>>>>>>>>>>>>> [/etc/security/pwquality.conf文件下的口令复杂度:] <<<<<<<<<<<<<<<<<<<<"
 echo
