@@ -833,16 +833,27 @@ echo
 fi
 echo ">>>>>>>>>>>>>>>>> [查看~/.bash_history文件下的HISTSIZE和HISTFILESIZE的配置值：] <<<<<<<<<<<<<<<<<"
 username=$(whoami)
-echo "当前登录的用户名为："$username
 
-## hist_user=`grep 'HISTSIZE\|HISTFILESIZE' /$username/.bash_history`
-if [[ -n $hist ]];then
-	echo -e "查看保存历史记录信息记录总数：\n"grep 'HISTSIZE\|HISTFILESIZE' /$username/.bash_history
+# 如果是root用户，则路径为/root，否则为/home/username
+if [ "$username" = "root" ]; then
+    userhome="/root"
 else
-	echo "未设置保存历史记录数"
-echo
+    userhome="/home/$username"
 fi
 
+echo "当前登录的用户名为：$username"
+
+# 检查历史记录设置
+hist_user=$(grep 'HISTSIZE\|HISTFILESIZE' "$userhome/.bashrc" 2>/dev/null)
+
+if [[ -n $hist_user ]]; then
+    echo -e "查看保存历史记录信息记录总数：\n"'grep "HISTSIZE\|HISTFILESIZE" "$userhome/.bashrc"'
+else
+    echo "未设置保存历史记录数"
+fi
+echo ">>>>>>>>>>>>>>>>> [查看HISTSIZE和HISTFILESIZE的配置值：] <<<<<<<<<<<<<<<<<"
+echo "HISTSIZE的配置值：$HISTSIZE"
+echo "HISTFILESIZE的配置值：$HISTFILESIZE"
 }
 
 
@@ -1630,17 +1641,30 @@ if [[ -n $hist ]];then
 else
 	echo "未设置保存历史记录数"
 echo
+fi
 echo ">>>>>>>>>>>>>>>>> [查看~/.bashrc文件下的HISTSIZE和HISTFILESIZE的配置值：] <<<<<<<<<<<<<<<<<"
 username=$(whoami)
-echo "当前登录的用户名为："$username
-fi
-## hist_user=`grep 'HISTSIZE\|HISTFILESIZE' /$username/.bashrc`
-if [[ -n $hist ]];then
-	echo -e "查看保存历史记录信息记录总数：\n"grep 'HISTSIZE\|HISTFILESIZE' /$username/.bashrc
+
+# 如果是root用户，则路径为/root，否则为/home/username
+if [ "$username" = "root" ]; then
+    userhome="/root"
 else
-	echo "未设置保存历史记录数"
-echo
+    userhome="/home/$username"
 fi
+
+echo "当前登录的用户名为：$username"
+
+# 检查历史记录设置
+hist_user=$(grep 'HISTSIZE\|HISTFILESIZE' "$userhome/.bashrc" 2>/dev/null)
+
+if [[ -n $hist_user ]]; then
+    echo -e "查看保存历史记录信息记录总数：\n"'grep "HISTSIZE\|HISTFILESIZE" "$userhome/.bashrc"'
+else
+    echo "未设置保存历史记录数"
+fi
+echo ">>>>>>>>>>>>>>>>> [查看HISTSIZE和HISTFILESIZE的配置值：] <<<<<<<<<<<<<<<<<"
+echo "HISTSIZE的配置值：$HISTSIZE"
+echo "HISTFILESIZE的配置值：$HISTFILESIZE"
 }
 
 
