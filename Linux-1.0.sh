@@ -1961,6 +1961,6 @@ if [[ $1 = "--cent" ]] || [[ $1 = "-c" ]];then
 	centos8
 fi
 
-if [[ $1 = "--mariadb" ]] || [[ $1 = "-" ]];then
+if [[ $1 = "--mariadb" ]] || [[ $1 = "-m" ]];then
 	mariadb_10.11
 fi
