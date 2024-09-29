@@ -15,6 +15,8 @@
 #			g）提供命令实例，实现快速测评，无任何学习该脚本的成本，如选择1，实现centos8的基线测评
 #			h）提供重定向文件的时间戳，方便查看
 #			i）添加ubuntu20.04，补充未具体说明的代码，修改错误的代码
+#		  v1.0
+#			增加颜色判定
 #
 # 计划：    a）
 #           b）
@@ -145,9 +147,9 @@ echo ">>>>>>>>>>>>>>>>>>>> [身份标识唯一性是否仅存在root账户UID=0:
 #是否仅存在root账户的UID=0
 uid=`awk -F: '($3==0)' /etc/passwd |grep -v 'root'`
 if [[ -n $uid ]];then
-	echo -e "存在除root账户外UID为0的账户:\n"$uid
+	echo -e "\033[31m存在除root账户外UID为0的账户:\n\033[0m"$uid
 else
-	echo "仅存在root账户的UID为0"
+	echo "\033[32m仅存在root账户的UID为0\033[0m"
 fi
 echo
 
@@ -156,16 +158,16 @@ echo "------------------------------- 空口令 -------------------------------"
 echo ">>>>>>>>>>>>>>>>>>>> [是否存在空口令账户:] <<<<<<<<<<<<<<<<<<<<"
 empty_passwd=`awk -F: 'length($2)==0 {print $1,$2}' /etc/shadow`
 if [[ -n $empty_passwd ]]; then
-	echo -e "/etc/shadow存在空口令账户：\n"$empty_passwd
+	echo -e "\033[31m/etc/shadow存在空口令账户：\n\033[0m"$empty_passwd
 else
-	echo  "检查/etc/shadow不存在空口令账户"
+	echo  "\033[32m检查/etc/shadow不存在空口令账户\033[0m"
 fi
 
 empty_passwd=`awk -F: '$2!="x" {print $1,$2}' /etc/passwd`
 if [[ -n $empty_passwd ]]; then
-	echo -e "/etc/passwd存在空口令账户：\n"$empty_passwd
+	echo -e "\033[31m/etc/passwd存在空口令账户：\n\033[0m"$empty_passwd
 else
-	echo  "检查/etc/passwd不存在空口令账户"
+	echo  "\033[32m检查/etc/passwd不存在空口令账户\033[0m"
 fi
 echo
 echo
@@ -187,7 +189,7 @@ min_len=`more /etc/pam.d/system-auth | grep -E 'pam_pwquality.so'`
 if [[ -n $min_len ]];then
 	echo -e "/etc/pam.d/system-auth文件下口令最小长度为："$min_len
 else
-	echo "未配置/etc/pam.d/system-auth文件的口令最小长度"
+	echo "\033[31m未配置/etc/pam.d/system-auth文件的口令最小长度\033[0m"
 fi
 echo
 echo ">>>>>>>>>>>>>>>>>>>> [/etc/security/pwquality.conf文件下的口令最小长度:]"
@@ -196,7 +198,7 @@ is_work=`cat /etc/security/pwquality.conf | grep -E 'minlen'|grep -v '^#'`
 if [[ -n $is_work ]];then
 	echo -e "/etc/security/pwquality.conf文件的口令最小长度:"$is_work
 else
-	echo "未配置/etc/security/pwquality.conf文件"
+	echo "\033[31m未配置/etc/security/pwquality.conf文件\033[0m"
 fi
 echo
 echo "（注意：若上述两个文件均存在配置，以/etc/pam.d/system-auth文件为准，下同）"
@@ -208,7 +210,7 @@ complexity=`more /etc/pam.d/system-auth | grep -E 'pam_pwquality.so'`
 if [[ -n $complexity ]];then
 	echo -e "/etc/pam.d/system-auth文件下口令复杂度为："$complexity
 else
-	echo "未配置/etc/pam.d/system-auth文件的口令复杂度"
+	echo "\033[31m未配置/etc/pam.d/system-auth文件的口令复杂度\033[0m"
 fi
 echo ">>>>>>>>>>>>>>>>>>>> [/etc/security/pwquality.conf文件下的口令复杂度:] <<<<<<<<<<<<<<<<<<<<"
 echo
@@ -216,7 +218,7 @@ is_comp_work=`cat /etc/security/pwquality.conf | grep -E 'minclass|dcredit|ucred
 if [[ -n $is_comp_work ]];then
 	echo -e "/etc/security/pwquality.conf文件的口令复杂度:"$is_comp_work
 else
-	echo "未配置/etc/security/pwquality.conf文件"
+	echo "\033[31m未配置/etc/security/pwquality.conf文件\033[0m"
 fi
 echo
 echo
@@ -242,9 +244,9 @@ echo "------------------------------- 登录失败策略 -----------------------
 echo ">>>>>>>>>>>>>>>>>>>> [查看/etc/pam.d/system-auth文件下的登录失败策略:] <<<<<<<<<<<<<<<<<<<<"
 login_failure=`more /etc/pam.d/system-auth | grep faillock`
 if [[ -n $login_failure ]]; then
-	echo -e "已设置登录失败策略：\n"$login_failure
+	echo -e "\033[32m已设置登录失败策略：\n\033[0m"$login_failure
 else
-	echo -e "未设置登录失败策略：\n"$login_failure
+	echo -e "\033[31m未设置登录失败策略：\n\033[0m"$login_failure
 fi
 echo
 echo
@@ -253,9 +255,9 @@ echo
 echo ">>>>>>>>>>>>>>>>>>>> [查看/etc/pam.d/sshd文件下的登录失败策略:] <<<<<<<<<<<<<<<<<<<<"
 ssh_login_failure=`cat /etc/pam.d/sshd | grep faillock`
 if [[ -n $ssh_login_failure ]]; then
-	echo  -e "已设置ssh登录失败策略：\n"$ssh_login_failure
+	echo  -e "\033[32m已设置ssh登录失败策略：\n\033[0m"$ssh_login_failure
 else
-	echo -e "未设置ssh登录失败策略：\n"$ssh_login_failure
+	echo -e "\033[31m未设置ssh登录失败策略：\n\033[0m"$ssh_login_failure
 fi
 echo
 echo
@@ -265,17 +267,17 @@ echo "------------------------------- 登录失败策略 -----------------------
 echo ">>>>>>>>>>>>>>>>>>>> [查看/etc/profile文件下的登录失败策略:] <<<<<<<<<<<<<<<<<<<<"
 timeout=`grep TMOUT /etc/profile`
 if [[ -n $timeout ]];then
-	echo -e "存在/etc/profile文件下的TMOUT值：\n"$timeout
+	echo -e "\033[32m存在/etc/profile文件下的TMOUT值：\n\033[0m"$timeout
 else
-	echo "未设置TMOUT值"
+	echo "\033[31m未设置TMOUT值\033[0m"
 fi
 echo
 echo ">>>>>>>>>>>>>>>>>>>> [查看/root/.bash_profile文件下的登录失败策略:]"
 timeout=`grep 'TMOUT' /root/.bash_profile`
 if [[ -n $timeout ]];then
-	echo -e "存在/root/.bash_profile文件下的TMOUT值：\n"$timeout
+	echo -e "\033[31m存在/root/.bash_profile文件下的TMOUT值：\n\033[0m"$timeout
 else
-	echo "未设置TMOUT值"
+	echo "\033[32m未设置TMOUT值\033[0m"
 fi
 awk -F: '($7 == "/bin/bash" || $7 == "/bin/sh") {print $1, $6}' /etc/passwd | while IFS=" " read -r user home; do  
     # 检查用户主目录是否存在  
@@ -316,7 +318,7 @@ if 	[ $?==0 ];then
 	echo $line
 	done
 else
-	echo "未采用SSH安全的协议"
+	echo "\033[31m未采用SSH安全的协议\033[0m"
 fi
 echo
 echo
@@ -326,7 +328,7 @@ if 	[ $?==0 ];then
 	echo $line
 	done
 else
-	echo  "未使用不安全的协议"
+	echo  "\033[32m未使用不安全的协议\033[0m"
 fi
 echo
 echo
@@ -367,9 +369,9 @@ echo
 echo ">>>>>>>>>>>>>>>>>>>> [是否存在多余的账户:] <<<<<<<<<<<<<<<<<<<<"
 excess_account=`awk -F: '{print $1,$3,$6,$7}' /etc/passwd |grep -v 'nologin\|false\|sync'|grep -E 'uucp|nuucp|lp|adm|sync|shutdown|halt|news|operator|gopher'`
 if [[ -n $excess_account ]];then
-   echo -e "存在多余的账户名：\n"$excess_account
+   echo -e "\033[31m存在多余的账户名：\n\033[0m"$excess_account
 else 
-	echo -e "未存在多余的账户名"
+	echo -e "\033[32m未存在多余的账户名\033[0m"
 fi
 
 # 禁止共享同一个账户
@@ -387,18 +389,18 @@ echo ">>>>>>>>>>>>>>>>>>>> [是否限制普通用户的su权限:] <<<<<<<<<<<<<<
 su=`grep 'pam_wheel.so use_uid' /etc/pam.d/su`
 # 判断auth required pam_wheel.so use_uid字段行是否被注释
 if grep -q "^auth\s\+required\s\+pam_wheel.so\s\+use_uid\s*$" /etc/pam.d/su; then
-  echo -e "已限制普通用户执行su命令权限:\n"$su
+  echo -e "\033[32m已限制普通用户执行su命令权限:\n\033[0m"$su
 else
-  echo -e "未限制普通用户执行su命令权限:\n"$su
+  echo -e "\033[31m未限制普通用户执行su命令权限:\n\033[0m"$su
 fi
 echo
 echo ">>>>>>>>>>>>>>>>>>>> [是否合理配置sudo权限:] <<<<<<<<<<<<<<<<<<<<"
 # 检测root组是否无口令可登录
 sudo_root=`grep '^root' /etc/sudoers`
 if grep -q "^%root\s\+ALL=(ALL)\s\+NOPASSWD:\s\+ALL$" /etc/sudoers; then
-  echo -e "root组无需口令可登录：\n"$sudo_root
+  echo -e "\033[31mroot组无需口令可登录：\n\033[0m"$sudo_root
 else
-  echo -e "未存在root或root组无需口令登录：\n"$sudo_root
+  echo -e "\033[32m未存在root或root组无需口令登录：\n\033[0m"$sudo_root
 fi
 echo
 # 检测是否存在别的用户组拥有过大的权限
@@ -436,7 +438,7 @@ user_umask=`grep umask /root/.bash_profile`
 if [[ -n $user_umask ]];then
 	echo "账户级umask值:"$user_umask
 else
-	echo "未设置账户级umask值"
+	echo "\033[31m未设置账户级umask值\033[0m"
 fi
 echo
 echo -e "核查账户级umask值:\n"
@@ -444,7 +446,7 @@ global_umask=`grep umask /etc/profile`
 if [[ -n $global_umask ]];then
 	echo "全局umask值:"$global_umask
 else
-	echo "未设置全局umask值"
+	echo "\033[31m未设置全局umask值\033[0m"
 fi
 echo
 echo -e "核查umask值:\n"`umask`
@@ -454,7 +456,7 @@ SELinux=`sestatus`
 if [[ -n $SELinux ]];then
 	echo "根据SELinux的具体情况进行判断"$SELinux
 else
-	echo "未开启SELinux"
+	echo "\033[31m未开启SELinux\033[0m"
 fi
 echo
 echo
@@ -473,9 +475,9 @@ rsyslog=`systemctl status rsyslog |grep "active (running)"`
 rsyslog_check=`systemctl status rsyslog |awk 'NR==1,NR==3{print}'`
 disable_rsyslog=`systemctl status rsyslog |awk 'NR==1,NR==3{print}'`
 if [[ -n $rsyslog ]] ;then
-	echo -e "已开启rsyslog服务\n"$rsyslog_check
+	echo -e "\033[32m已开启rsyslog服务\n\033[0m"$rsyslog_check
 else
-	echo -e "未开启rsyslog服务\n"$disable_rsyslog
+	echo -e "\033[31m未开启rsyslog服务\n\033[0m"$disable_rsyslog
 fi
 echo
 echo
@@ -484,9 +486,9 @@ audit=`systemctl status auditd |grep "active (running)"`
 audit_check=`systemctl status auditd |awk 'NR==1,NR==3{print}'`
 disable_audit=`systemctl status auditd |grep "inactive"`
 if [[ -n $audit ]] ;then
-	echo -e "已开启audit服务\n"$audit_check
+	echo -e "\033[32m已开启audit服务\n\033[0m"$audit_check
 else
-	echo -e "未开启audit服务\n"$disable_audit
+	echo -e "\033[31m未开启audit服务\n\033[0m"$disable_audit
 fi
 echo
 echo
@@ -523,18 +525,18 @@ snmp=`systemctl status snmpd |grep "active (running)"`
 snmp_check=`systemctl status snmpd |awk 'NR==1,NR==3{print}'`
 disable_snmp=`systemctl status snmpd |grep "inactive"`
 if [[ -n $snmp ]] ;then
-	echo -e "已开启snmp服务\n"$snmp_check
+	echo -e "\033[32m已开启snmp服务\n"$snmp_check
 else
-	echo -e "未开启snmp服务\n"$disable_snmp
+	echo -e "\033[31m未开启snmp服务\n\033[0m"$disable_snmp
 fi
 echo
 snmp_conf=`grep -v '^#\|^$' /etc/snmp/snmpd.conf`
 snmp_conf_check=`systemctl status snmpd |awk 'NR==1,NR==3{print}'`
 disable_snmp_conf=`systemctl status snmpd |grep "inactive"`
 if [[ -n $snmp_conf ]] ;then
-	echo -e "具备snmp配置内容\n"$snmp_conf_check
+	echo -e "\033[32m具备snmp配置内容\n\033[0m"$snmp_conf_check
 else
-	echo -e "未具备snmp配置内容\n"$disable_snmp_conf
+	echo -e "\033[31m未具备snmp配置内容\n"$disable_snmp_conf
 fi
 echo
 echo ">>>>>>>>>>>>>>>>> [查看是否对审计日志进行保存:] <<<<<<<<<<<<<<<<<"
@@ -1957,4 +1959,8 @@ fi
 
 if [[ $1 = "--cent" ]] || [[ $1 = "-c" ]];then
 	centos8
+fi
+
+if [[ $1 = "--mariadb" ]] || [[ $1 = "-" ]];then
+	mariadb_10.11
 fi
