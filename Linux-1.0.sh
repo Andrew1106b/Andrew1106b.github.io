@@ -100,7 +100,7 @@ echo "------------------------------- 身份鉴别措施 -----------------------
 # 是否具备身份鉴别措施
 echo -e "\033[33m>>>>>>>>>>>>>>>>>>>> [是否存在自动登录鉴别措施:] <<<<<<<<<<<<<<<<<<<<\033[0m"
 
-Authentication=`grep 'AutomaticLoginEnable\|AutomaticLogin' /etc/gdm/custom.conf`
+Authentication=`grep 'AutomaticLoginEnable\|AutomaticLogin' /etc/gdm/custom.conf /etc/lightdm/*`
 if [[ -n $Authentication ]]; then
 	echo $Authentication
 else
@@ -272,6 +272,14 @@ else
 	echo "\033[31m未设置TMOUT值\033[0m"
 fi
 echo
+echo ">>>>>>>>>>>>>>>>>>>> [查看/etc/profile.d/*.sh文件下的登录失败策略:] <<<<<<<<<<<<<<<<<<<<"
+timeout=`grep TMOUT /etc/profile.d/*.sh`
+if [[ -n $timeout ]];then
+	echo -e "\033[32m存在/etc/profile.d/*.sh文件下的TMOUT值：\n\033[0m"$timeout
+else
+	echo "\033[31m未设置TMOUT值\033[0m"
+fi
+echo
 echo ">>>>>>>>>>>>>>>>>>>> [查看/root/.bash_profile文件下的登录失败策略:]"
 timeout=`grep 'TMOUT' /root/.bash_profile`
 if [[ -n $timeout ]];then
@@ -396,7 +404,7 @@ fi
 echo
 echo ">>>>>>>>>>>>>>>>>>>> [是否合理配置sudo权限:] <<<<<<<<<<<<<<<<<<<<"
 # 检测root组是否无口令可登录
-sudo_root=`grep '^root' /etc/sudoers`
+sudo_root=`grep '^root' /etc/sudoers /etc/sudoers.d/`
 if grep -q "^%root\s\+ALL=(ALL)\s\+NOPASSWD:\s\+ALL$" /etc/sudoers; then
   echo -e "\033[31mroot组无需口令可登录：\n\033[0m"$sudo_root
 else
@@ -525,7 +533,7 @@ snmp=`systemctl status snmpd |grep "active (running)"`
 snmp_check=`systemctl status snmpd |awk 'NR==1,NR==3{print}'`
 disable_snmp=`systemctl status snmpd |grep "inactive"`
 if [[ -n $snmp ]] ;then
-	echo -e "\033[32m已开启snmp服务\n"$snmp_check
+	echo -e "\033[32m已开启snmp服务\n\033[0m"$snmp_check
 else
 	echo -e "\033[31m未开启snmp服务\n\033[0m"$disable_snmp
 fi
@@ -536,7 +544,7 @@ disable_snmp_conf=`systemctl status snmpd |grep "inactive"`
 if [[ -n $snmp_conf ]] ;then
 	echo -e "\033[32m具备snmp配置内容\n\033[0m"$snmp_conf_check
 else
-	echo -e "\033[31m未具备snmp配置内容\n"$disable_snmp_conf
+	echo -e "\033[31m未具备snmp配置内容\n\033[0m"$disable_snmp_conf
 fi
 echo
 echo ">>>>>>>>>>>>>>>>> [查看是否对审计日志进行保存:] <<<<<<<<<<<<<<<<<"
@@ -655,7 +663,7 @@ fi
 echo
 
 echo ">>>>>>>>>>>>>>>>> [检查samba服务是否配置了匿名共享] <<<<<<<<<<<<<<<<<"
-is_share=`grep 'security = share\|guest ok =yes \|public = yes' /etc/samba/smb.conf`
+is_share=`grep 'security = share\|guest ok = yes \|public = yes' /etc/samba/smb.conf`
 if [[ -n $is_share ]];then
 	echo -e "配置了samba共享：\n"$is_share
 else	
@@ -900,7 +908,7 @@ echo
 # 是否具备身份鉴别措施
 echo ">>>>>>>>>>>>>>>>>>>> [是否存在自动登录鉴别措施:] <<<<<<<<<<<<<<<<<<<<"
 
-Authentication=`grep 'AutomaticLoginEnable\|AutomaticLogin' /etc/gdm3/custom.conf`
+Authentication=`grep 'AutomaticLoginEnable\|AutomaticLogin' /etc/gdm3/custom.conf /etc/lightdm/*`
 if [[ -n $Authentication ]]; then
 	echo $Authentication
 else
@@ -1072,6 +1080,14 @@ else
 	echo "未设置TMOUT值"
 fi
 echo
+echo ">>>>>>>>>>>>>>>>>>>> [查看/etc/profile.d/*.sh文件下的登录失败策略:] <<<<<<<<<<<<<<<<<<<<"
+timeout=`grep TMOUT /etc/profile.d/*.sh`
+if [[ -n $timeout ]];then
+	echo -e "\033[32m存在/etc/profile.d/*.sh文件下的TMOUT值：\n\033[0m"$timeout
+else
+	echo "\033[31m未设置TMOUT值\033[0m"
+fi
+echo
 echo ">>>>>>>>>>>>>>>>>>>> [查看/root/.bash_profile文件下的登录失败策略:]"
 timeout=`grep 'TMOUT' /root/.profile`
 if [[ -n $timeout ]];then
@@ -1196,7 +1212,7 @@ fi
 echo
 echo ">>>>>>>>>>>>>>>>>>>> [是否合理配置sudo权限:] <<<<<<<<<<<<<<<<<<<<"
 # 检测root组是否无口令可登录
-sudo_root=`grep '^root' /etc/sudoers`
+sudo_root=`grep '^root' /etc/sudoers /etc/sudoers.d/`
 if grep -q "^%root\s\+ALL=(ALL)\s\+NOPASSWD:\s\+ALL$" /etc/sudoers; then
   echo -e "root组无需口令可登录：\n"$sudo_root
 else
