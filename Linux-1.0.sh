@@ -100,7 +100,7 @@ echo "------------------------------- 身份鉴别措施 -----------------------
 # 是否具备身份鉴别措施
 echo -e "\033[33m>>>>>>>>>>>>>>>>>>>> [是否存在自动登录鉴别措施:] <<<<<<<<<<<<<<<<<<<<\033[0m"
 
-Authentication=`grep 'AutomaticLoginEnable\|AutomaticLogin' /etc/gdm/custom.conf /etc/lightdm/*`
+Authentication=`grep 'AutomaticLoginEnable\|AutomaticLogin\|auto*' /etc/gdm/custom.conf /etc/lightdm/*`
 if [[ -n $Authentication ]]; then
 	echo $Authentication
 else
@@ -147,9 +147,9 @@ echo ">>>>>>>>>>>>>>>>>>>> [身份标识唯一性是否仅存在root账户UID=0:
 #是否仅存在root账户的UID=0
 uid=`awk -F: '($3==0)' /etc/passwd |grep -v 'root'`
 if [[ -n $uid ]];then
-	echo -e "\033[31m存在除root账户外UID为0的账户:\n\033[0m"$uid
+	echo -e "\033[31m存在除root账户外UID为0的账户:\n\033[0m" $uid
 else
-	echo "\033[32m仅存在root账户的UID为0\033[0m"
+	echo -e "\033[32m仅存在root账户的UID为0\033[0m"
 fi
 echo
 
@@ -158,16 +158,16 @@ echo "------------------------------- 空口令 -------------------------------"
 echo ">>>>>>>>>>>>>>>>>>>> [是否存在空口令账户:] <<<<<<<<<<<<<<<<<<<<"
 empty_passwd=`awk -F: 'length($2)==0 {print $1,$2}' /etc/shadow`
 if [[ -n $empty_passwd ]]; then
-	echo -e "\033[31m/etc/shadow存在空口令账户：\n\033[0m"$empty_passwd
+	echo -e "\033[31m/etc/shadow存在空口令账户：\n\033[0m" $empty_passwd
 else
-	echo  "\033[32m检查/etc/shadow不存在空口令账户\033[0m"
+	echo -e "\033[32m检查/etc/shadow不存在空口令账户\033[0m"
 fi
 
 empty_passwd=`awk -F: '$2!="x" {print $1,$2}' /etc/passwd`
 if [[ -n $empty_passwd ]]; then
 	echo -e "\033[31m/etc/passwd存在空口令账户：\n\033[0m"$empty_passwd
 else
-	echo  "\033[32m检查/etc/passwd不存在空口令账户\033[0m"
+	echo -e "\033[32m检查/etc/passwd不存在空口令账户\033[0m"
 fi
 echo
 echo
@@ -189,7 +189,7 @@ min_len=`more /etc/pam.d/system-auth | grep -E 'pam_pwquality.so'`
 if [[ -n $min_len ]];then
 	echo -e "/etc/pam.d/system-auth文件下口令最小长度为："$min_len
 else
-	echo "\033[31m未配置/etc/pam.d/system-auth文件的口令最小长度\033[0m"
+	echo -e "\033[31m未配置/etc/pam.d/system-auth文件的口令最小长度\033[0m"
 fi
 echo
 echo ">>>>>>>>>>>>>>>>>>>> [/etc/security/pwquality.conf文件下的口令最小长度:]"
@@ -198,7 +198,7 @@ is_work=`cat /etc/security/pwquality.conf | grep -E 'minlen'|grep -v '^#'`
 if [[ -n $is_work ]];then
 	echo -e "/etc/security/pwquality.conf文件的口令最小长度:"$is_work
 else
-	echo "\033[31m未配置/etc/security/pwquality.conf文件\033[0m"
+	echo -e "\033[31m未配置/etc/security/pwquality.conf文件\033[0m"
 fi
 echo
 echo "（注意：若上述两个文件均存在配置，以/etc/pam.d/system-auth文件为准，下同）"
@@ -210,7 +210,7 @@ complexity=`more /etc/pam.d/system-auth | grep -E 'pam_pwquality.so'`
 if [[ -n $complexity ]];then
 	echo -e "/etc/pam.d/system-auth文件下口令复杂度为："$complexity
 else
-	echo "\033[31m未配置/etc/pam.d/system-auth文件的口令复杂度\033[0m"
+	echo -e "\033[31m未配置/etc/pam.d/system-auth文件的口令复杂度\033[0m"
 fi
 echo ">>>>>>>>>>>>>>>>>>>> [/etc/security/pwquality.conf文件下的口令复杂度:] <<<<<<<<<<<<<<<<<<<<"
 echo
@@ -218,7 +218,7 @@ is_comp_work=`cat /etc/security/pwquality.conf | grep -E 'minclass|dcredit|ucred
 if [[ -n $is_comp_work ]];then
 	echo -e "/etc/security/pwquality.conf文件的口令复杂度:"$is_comp_work
 else
-	echo "\033[31m未配置/etc/security/pwquality.conf文件\033[0m"
+	echo -e "\033[31m未配置/etc/security/pwquality.conf文件\033[0m"
 fi
 echo
 echo
@@ -277,7 +277,7 @@ timeout=`grep TMOUT /etc/profile.d/*.sh`
 if [[ -n $timeout ]];then
 	echo -e "\033[32m存在/etc/profile.d/*.sh文件下的TMOUT值：\n\033[0m"$timeout
 else
-	echo "\033[31m未设置TMOUT值\033[0m"
+	echo -e "\033[31m未设置TMOUT值\033[0m"
 fi
 echo
 echo ">>>>>>>>>>>>>>>>>>>> [查看/root/.bash_profile文件下的登录失败策略:]"
@@ -285,7 +285,7 @@ timeout=`grep 'TMOUT' /root/.bash_profile`
 if [[ -n $timeout ]];then
 	echo -e "\033[31m存在/root/.bash_profile文件下的TMOUT值：\n\033[0m"$timeout
 else
-	echo "\033[32m未设置TMOUT值\033[0m"
+	echo -e "\033[32m未设置TMOUT值\033[0m"
 fi
 awk -F: '($7 == "/bin/bash" || $7 == "/bin/sh") {print $1, $6}' /etc/passwd | while IFS=" " read -r user home; do  
     # 检查用户主目录是否存在  
@@ -363,7 +363,7 @@ Default_Account=`grep '^admin\|^tomcat\|^mysql\|^apache\|^clamupdate\|^mariadb\|
 if [[ -n $Default_Account ]];then
 	echo -e "存在默认账户：\n"$Default_Account
 else
-	echo "未存在默认账户"
+	echo -e "未存在默认账户"
 fi
 echo
 echo ">>>>>>>>>>>>>>>>>>>> [自行检查是否为默认口令（可复用弱口令的判定结果）:] <<<<<<<<<<<<<<<<<<<<"
