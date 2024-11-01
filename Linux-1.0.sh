@@ -241,6 +241,14 @@ echo "************************************ 登录失败处理 ******************
 echo
 echo "------------------------------- 登录失败策略 -------------------------------"
 # 登录失败策略
+echo ">>>>>>>>>>>>>>>>>>>> [查看/etc/pam.d/login文件、/etc/pam.d/remote文件和/etc/pam.d/sshd文件下的引用文件:] <<<<<<<<<<<<<<<<<<<<"
+zhiying=`grep 'include\|substack' /etc/pam.d/remote /etc/pam.d/sshd /etc/pam.d/login`
+if [[ -n $zhiying ]]; then
+	echo -e "\033[32m查看引用的文件：\n\033[0m" $zhiying
+fi
+echo
+echo
+
 echo ">>>>>>>>>>>>>>>>>>>> [查看/etc/pam.d/system-auth文件下的登录失败策略:] <<<<<<<<<<<<<<<<<<<<"
 login_failure=`more /etc/pam.d/system-auth | grep faillock`
 if [[ -n $login_failure ]]; then
@@ -251,13 +259,23 @@ fi
 echo
 echo
 
+echo ">>>>>>>>>>>>>>>>>>>> [查看/etc/pam.d/password-auth文件下的登录失败策略:] <<<<<<<<<<<<<<<<<<<<"
+password_login_failure=`more /etc/pam.d/password-auth | grep faillock`
+if [[ -n $password_login_failure ]]; then
+	echo -e "\033[32m已设置登录失败策略：\n\033[0m"$password_login_failure
+else
+	echo -e "\033[31m未设置登录失败策略：\n\033[0m"$password_login_failure
+fi
+echo
+echo
+
 # ssh登录失败策略
 echo ">>>>>>>>>>>>>>>>>>>> [查看/etc/pam.d/sshd文件下的登录失败策略:] <<<<<<<<<<<<<<<<<<<<"
 ssh_login_failure=`cat /etc/pam.d/sshd | grep faillock`
 if [[ -n $ssh_login_failure ]]; then
 	echo  -e "\033[32m已设置ssh登录失败策略：\n\033[0m"$ssh_login_failure
 else
-	echo -e "\033[31m未设置ssh登录失败策略：\n\033[0m"$ssh_login_failure
+	echo -e "\033[31m未设置ssh登录失败策略(再查看是否引用别的文件)：\n\033[0m"$ssh_login_failure
 fi
 echo
 echo
@@ -317,7 +335,7 @@ echo "************************************ 远程登录防窃听 ***************
 echo
 echo "------------------------------- 远程登录管理模式 -------------------------------"
 echo ">>>>>>>>>>>>>>>>>>>> [查看是否使用安全的远程登录管理模式:] <<<<<<<<<<<<<<<<<<<<"
-Insecurity=`grep '^telnet\|^rlogin' /etc/services`
+Insecurity=`grep '^telnet\|^rlogin\|^ftp\|^vsftp' /etc/services`
 ssh=`grep '^ssh\b' /etc/services |awk '{print $1,$2}'`
 
 echo -e "使用了安全的协议：" 
@@ -359,7 +377,7 @@ echo "************************************ 默认账户名和默认口令 ******
 echo
 # 默认账户、默认口令
 echo ">>>>>>>>>>>>>>>>>>>> [是否重命名、删除或禁用默认账户:] <<<<<<<<<<<<<<<<<<<<"
-Default_Account=`grep '^admin\|^tomcat\|^mysql\|^apache\|^clamupdate\|^mariadb\|^nginx\|^shutdown\|^halt ' /etc/passwd`
+Default_Account=`grep '^admin\|^tomcat\|^mysql\|^apache\|^clamupdate\|^mariadb\|^nginx ' /etc/passwd`
 if [[ -n $Default_Account ]];then
 	echo -e "存在默认账户：\n"$Default_Account
 else
@@ -375,7 +393,7 @@ echo "************************************ 多余的、过期的账户 *********
 echo
 # 对多余帐户进行删除、锁定或禁止其登录如：uucp、nuucp、lp、adm、sync、shutdown、halt、news、operator、gopher用户
 echo ">>>>>>>>>>>>>>>>>>>> [是否存在多余的账户:] <<<<<<<<<<<<<<<<<<<<"
-excess_account=`awk -F: '{print $1,$3,$6,$7}' /etc/passwd |grep -v 'nologin\|false\|sync'|grep -E 'uucp|nuucp|lp|adm|sync|shutdown|halt|news|operator|gopher'`
+excess_account=`awk -F: '{print $1,$3,$6,$7}' /etc/passwd |grep -v 'nologin\|false\|sync'|grep -E 'uucp|nuucp|lp|^adm|sync|shutdown|halt|news|operator|gopher'`
 if [[ -n $excess_account ]];then
    echo -e "\033[31m存在多余的账户名：\n\033[0m"$excess_account
 else 
@@ -404,13 +422,34 @@ fi
 echo
 echo ">>>>>>>>>>>>>>>>>>>> [是否合理配置sudo权限:] <<<<<<<<<<<<<<<<<<<<"
 # 检测root组是否无口令可登录
-sudo_root=`grep '^root' /etc/sudoers /etc/sudoers.d/`
+sudo_root=`grep '^root' /etc/sudoers /etc/sudoers.d/*`
 if grep -q "^%root\s\+ALL=(ALL)\s\+NOPASSWD:\s\+ALL$" /etc/sudoers; then
   echo -e "\033[31mroot组无需口令可登录：\n\033[0m"$sudo_root
 else
   echo -e "\033[32m未存在root或root组无需口令登录：\n\033[0m"$sudo_root
 fi
 echo
+# 检测是否存在别的用户组拥有过大的权限-sudoers.d/*文件
+while read line; do
+  if [[ "$line" =~ ^%[^:]+ ]]; then
+	group=`echo "$line"  |awk  '{print $1}'`
+    if grep -q "^$group\s\+ALL=(ALL)\s\+NOPASSWD:\s\+ALL$" /etc/sudoers.d/*; then
+      echo -e "\n以下组拥有过大的权限\n"$line
+		elif grep -q "^$group\s\+ALL=(ALL)\s\+ALL$" /etc/sudoers.d/*; then
+			echo -e "\n以下组拥有过大的权限\n"$line
+		elif grep -q "^$group\s\+ALL=(ALL:ALL)\s\+NOPASSWD:\s\+ALL$" /etc/sudoers.d/*; then
+			echo -e "\n以下组拥有过大的权限\n"$line
+		elif grep -q "^$group\s\+ALL=(ALL:ALL)\s\+ALL$" /etc/sudoers.d/*; then
+			echo -e "\n以下组拥有过大的权限\n"$line
+		elif grep -q "^$group\s\+ALL=(root)\s\+ALL$" /etc/sudoers.d/*; then
+			echo -e "\n以下组拥有过大的权限\n"$line
+	else
+	echo -e "$line 组未拥有过大的权限\n"
+    fi
+  fi
+done < /etc/sudoers.d/*
+echo
+
 # 检测是否存在别的用户组拥有过大的权限
 while read line; do
   if [[ "$line" =~ ^%[^:]+ ]]; then
@@ -422,6 +461,8 @@ while read line; do
 		elif grep -q "^$group\s\+ALL=(ALL:ALL)\s\+NOPASSWD:\s\+ALL$" /etc/sudoers; then
 			echo -e "\n以下组拥有过大的权限\n"$line
 		elif grep -q "^$group\s\+ALL=(ALL:ALL)\s\+ALL$" /etc/sudoers; then
+			echo -e "\n以下组拥有过大的权限\n"$line
+		elif grep -q "^$group\s\+ALL=(root)\s\+ALL$" /etc/sudoers; then
 			echo -e "\n以下组拥有过大的权限\n"$line
 	else
 	echo -e "$line 组未拥有过大的权限\n"
@@ -446,7 +487,7 @@ user_umask=`grep umask /root/.bash_profile`
 if [[ -n $user_umask ]];then
 	echo "账户级umask值:"$user_umask
 else
-	echo "\033[31m未设置账户级umask值\033[0m"
+	echo -e "\033[31m未设置账户级umask值\033[0m"
 fi
 echo
 echo -e "核查账户级umask值:\n"
@@ -454,7 +495,7 @@ global_umask=`grep umask /etc/profile`
 if [[ -n $global_umask ]];then
 	echo "全局umask值:"$global_umask
 else
-	echo "\033[31m未设置全局umask值\033[0m"
+	echo -e "\033[31m未设置全局umask值\033[0m"
 fi
 echo
 echo -e "核查umask值:\n"`umask`
@@ -464,7 +505,7 @@ SELinux=`sestatus`
 if [[ -n $SELinux ]];then
 	echo "根据SELinux的具体情况进行判断"$SELinux
 else
-	echo "\033[31m未开启SELinux\033[0m"
+	echo -e "\033[31m未开启SELinux\033[0m"
 fi
 echo
 echo
@@ -506,7 +547,7 @@ echo `cat /etc/rsyslog.conf`
 echo
 echo
 echo ">>>>>>>>>>>>>>>>> [查看audit审计规则:] <<<<<<<<<<<<<<<<<"
-echo `cat /etc/audit/rules.d/audit.rules`
+echo `cat /etc/audit/rules.d/*`
 echo
 echo
 
@@ -584,7 +625,7 @@ fi
 if [[ -n $back_crontab ]];then
 	echo -e "检查crontab列表中是否存在定期备份措施：\n"$back_crontab
 else
-	echo "未配置crontab定时计划任务"
+	echo -e "未配置crontab定时计划任务"
 fi
 echo 
 
@@ -644,7 +685,7 @@ minimizes=`grep -E '^smbd|^ftp\b|^telnet\b|^rsh|^rlogin|^cups|^talk|^pop-2|^send
 if [[ -n $minimizes ]];then
 	echo -e "存在多余的、不必要的服务：\n"$minimizes
 else
-	echo "未存在多余的、不必要的服务"
+	echo -e "未存在多余的、不必要的服务"
 fi
 echo
 echo
@@ -748,7 +789,7 @@ patchinfo=`rpm -qa --last | grep patch`
 if [ -n "$patchinfo" ]; then
 	echo  -e "存在以下已安装的补丁：\n"$patchinfo
 else
-	echo "未存在补丁安装包"
+	echo -e "未存在补丁安装包"
 fi
 echo
 echo
@@ -772,7 +813,7 @@ clam=`clamscan -V 2>/dev/null`
 if [[ -n $clam ]];then
 	echo -e "已安装clamav，其版本号为："$clam
 else
-	echo "未安装clamav"
+	echo -e "未安装clamav"
 fi
 echo
 
@@ -809,7 +850,7 @@ cron=`ls /var/spool/cron`
 if [[ -n $cron ]];then
 	echo -e "当前存在其他的定时计划任务：\n"$cron
 else
-	echo "该目录为空，无其他人员的定时计划任务"
+	echo -e "该目录为空，无其他人员的定时计划任务"
 fi
 echo
 # 获取用户输入的安全管理员账户名
